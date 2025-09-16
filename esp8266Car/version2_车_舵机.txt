@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="shortcut icon" href="#" />
+  <title>WiFi 遥控小车</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+        body {
+            background-color: rgb(0,0,0);
+            color:rgb(254,220,0);
+            font-family: Arial;
+            text-align: center;
+        }
+        h2{
+            font-size: 5.0rem;
+        }
+        button {
+            text-align: center;
+            height: auto;
+            font-size: 10px;
+            margin: 10px;
+            padding: 20px 40px;
+            border-radius: 5px;
+            background-color: rgb(254,220,0);
+            color: rgb(0,0,0);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;          
+        }
+        .parent {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        button:active {
+            background-color: rgb(212, 29, 29);
+        }  
+    </style>
+</head>
+<body>
+  <h2>NodeMCU小车控制</h2>
+  <p>舵机控制</p>
+  <div>
+  <label for="horizontalServoSlider">水平舵机：</label>
+  <input type="range" min="0" max="180" value="90" class="slider" id="horizontalServoSlider">
+  </div>
+  <div>
+  <label for="verticalServoSlider">竖直舵机： </label>
+  <input type="range" min="0" max="180" value="90" class="slider" id="verticalServoSlider">
+  </div>
+  <p>小车速度控制</p>
+  <label for="speedSlider">速度控制器: </label>
+  <input type="range" min="0" max="255" value="0" class="slider" id="speedSlider">
+  <div class="parent">
+    <button class="button" onclick="sendCommand('F', speedCar)" id="F">前进</button>
+  </div>
+  <div class="parent">
+    <button class="button" onclick="sendCommand('L', speedCar)" id="L">左转</button>
+    <button class="button" onclick="sendCommand('S', speedCar)" id="S">停止</button>
+    <button class="button" onclick="sendCommand('R', speedCar)" id="R">右转</button>
+  </div>
+  <div class="parent">
+    <button class="button" onclick="sendCommand('B', speedCar)" id="B">后退</button>
+  </div>
+  <script>
+     let speedCar = 0;
+let direction = 'S';
+
+let sendCommand = function(dir, speedCar) {
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/direction?dir=" + dir + "&speedCar=" + speedCar, true);
+  xhr.send();
+};
+
+let slider = document.getElementById("speedSlider");
+
+let updateSpeed = function() {
+  speedCar = slider.value;
+  console.log(speedCar);
+};
+
+slider.oninput = function() {
+  updateSpeed();
+};
+
+
+let horizontalSlider = document.getElementById("horizontalServoSlider");
+let verticalSlider = document.getElementById("verticalServoSlider");
+
+function sendServoCommand(servo, angle){
+	let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/servo?servo=" + servo + "&angle=" + angle, true);
+    xhr.send();
+    console.log("Send servo command: " + servo + " to angle: " + angle);
+}
+
+horizontalSlider.oninput = function(){
+	sendServoCommand('H', this.value);
+}
+vericalSlider.oninput = function(){
+	sendServoCommand('V', this.value);
+}
+
+
+let loop = setInterval(function() {
+  if (direction !== 'S') {
+    sendCommand(direction, speedCar);
+  }
+}, 100);
+
+let setDirection = function(dir) {
+  if (dir === direction) {
+    direction = 'S';
+    sendCommand(direction, speedCar);
+  } else {
+    direction = dir;
+  }
+};
+
+document.getElementById('F').onclick = function() {
+  setDirection('F');
+};
+
+document.getElementById('L').onclick = function() {
+  setDirection('L');
+};
+
+document.getElementById('S').onclick = function() {
+  setDirection('S');
+};
+
+document.getElementById('R').onclick = function() {
+  setDirection('R');
+};
+
+document.getElementById('B').onclick = function() {
+  setDirection('B');
+};
+    </script>
+</body>
+</html>
